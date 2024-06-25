@@ -51,9 +51,8 @@ Flask
 - models.py: Define o modelo de cliente para o banco de dados.
 
 FastAPI
-- main.py: Configura a aplicação FastAPI e inclui as rotas.
-- routes.py: Define a rota para gerar o JWT.
-- dependencies.py: Configura a conexão com o banco de dados usando SQLAlchemy.
+- src/main.py: Configura a aplicação FastAPI e inclui as rotas.
+- src/routes.py: Define a rota para gerar o JWT.
 Docker
 - docker-compose.yml
 - Define os serviços para o PostgreSQL, Flask e FastAPI, incluindo suas dependências e  variáveis de ambiente.
