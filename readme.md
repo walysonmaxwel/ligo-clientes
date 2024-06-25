@@ -33,7 +33,7 @@ Crie os arquivos .env nas pastas flask_crud_clients e fastapi_jwt copiando o con
 
 3. **Construa e inicie os containers:**
 ```
-docker-compose up --build
+docker compose up --build
 ```
 
 4. **Acesse os serviços:**
