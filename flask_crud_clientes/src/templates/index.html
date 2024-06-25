@@ -1,0 +1,218 @@
+{% extends "layout.html" %}
+
+{% block title %}Clientes{% endblock %}
+
+{% block content %}
+<div class="mt-4">
+  <button class="btn btn-primary mb-2" data-toggle="modal" data-target="#addUserModal">Adicionar Cliente</button>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Endereço</th>
+        <th>Email</th>
+        <th>Client ID</th>
+        <th>Client Secret</th>
+        <th>Data de Inclusão</th>
+        <th>JWT</th>
+      </tr>
+    </thead>
+    <tbody id="clientsTableBody">
+      {% for client in clients %}
+      <tr>
+        <td>{{ client.name }}</td>
+        <td>{{ client.address }}</td>
+        <td>{{ client.email }}</td>
+        <td>
+          <div class="input-group">
+            <input type="password" value="{{ client.client_id }}" readonly class="form-control-plaintext" style="margin-right: 10px;">
+            <div class="input-group-append">
+              <span class="input-group-text toggle-password" style="cursor: pointer;">
+                <i class="fa fa-eye-slash"></i>
+              </span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="input-group">
+            <input type="password" value="{{ client.client_secret }}" readonly class="form-control-plaintext" style="margin-right: 10px;">
+            <div class="input-group-append">
+              <span class="input-group-text toggle-password" style="cursor: pointer;">
+                <i class="fa fa-eye-slash"></i>
+              </span>
+            </div>
+          </div>
+        </td>
+        <td>{{ client.inclusion_date }}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm generate-jwt" data-client-id="{{ client.id }}">Gerar JWT</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal for Adding User -->
+<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addUserModalLabel">Adicionar Cliente</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="alert alert-danger d-none" id="errorAlert"></div>
+      <div class="alert alert-success d-none" id="successAlert"></div>
+      <form id="addUserForm" method="post">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="name">Nome Completo</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="address">Endereço (URL)</label>
+            <input type="url" class="form-control" id="address" name="address" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Displaying JWT -->
+<div class="modal fade" id="jwtModal" tabindex="-1" role="dialog" aria-labelledby="jwtModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="jwtModalLabel">JWT Gerado</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <textarea class="form-control" id="jwtToken" rows="5" readonly></textarea>
+        <button class="btn btn-secondary mt-2" id="copyJwtButton">Copiar JWT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('addUserForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  const formData = new FormData(this);
+  const data = Object.fromEntries(formData.entries());
+
+  fetch('/clients', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': data.csrf_token 
+    },
+    body: JSON.stringify({
+      name: data.name,
+      address: data.address,
+      email: data.email
+    })
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.error) {
+      document.getElementById('errorAlert').textContent = result.error;
+      document.getElementById('errorAlert').classList.remove('d-none');
+      document.getElementById('successAlert').classList.add('d-none');
+    } else {
+      document.getElementById('errorAlert').classList.add('d-none');
+      document.getElementById('successAlert').textContent = result.message;
+      document.getElementById('successAlert').classList.remove('d-none');
+      const tableBody = document.getElementById('clientsTableBody');
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td>${data.name}</td>
+        <td>${data.address}</td>
+        <td>${data.email}</td>
+        <td>
+          <div class="input-group">
+            <input type="password" value="${result.client_id}" readonly class="form-control-plaintext" style="margin-right: 10px;">
+            <div class="input-group-append">
+              <span class="input-group-text toggle-password" style="cursor: pointer;">
+                <i class="fa fa-eye-slash"></i>
+              </span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="input-group">
+            <input type="password" value="${result.client_secret}" readonly class="form-control-plaintext" style="margin-right: 10px;">
+            <div class="input-group-append">
+              <span class="input-group-text toggle-password" style="cursor: pointer;">
+                <i class="fa fa-eye-slash"></i>
+              </span>
+            </div>
+          </div>
+        </td>
+        <td>${result.inclusion_date}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm generate-jwt" data-client-id="${result.id}">Generate JWT</button>
+        </td>
+      `;
+      tableBody.appendChild(newRow);
+    }
+  })
+  .catch(error => {
+    document.getElementById('errorAlert').textContent = 'An unexpected error occurred.';
+    document.getElementById('errorAlert').classList.remove('d-none');
+    document.getElementById('successAlert').classList.add('d-none');
+  });
+});
+
+document.addEventListener('click', function(event) {
+  if (event.target.closest('.toggle-password')) {
+    const input = event.target.closest('.input-group').querySelector('input');
+    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', type);
+
+    const icon = event.target.closest('.toggle-password').querySelector('i');
+    icon.classList.toggle('fa-eye');
+    icon.classList.toggle('fa-eye-slash');
+  }
+
+  if (event.target.closest('.generate-jwt')) {
+    const clientId = event.target.dataset.clientId;
+    fetch(`/generate_jwt/${clientId}`)
+      .then(response => response.json())
+      .then(result => {
+        if (result.error) {
+          alert(result.error);
+        } else {
+          const jwtTokenElement = document.getElementById('jwtToken');
+          jwtTokenElement.value = result.token;
+          $('#jwtModal').modal('show');
+        }
+      })
+      .catch(error => {
+        alert('Falha ao gerar JWT');
+      });
+  }
+});
+
+document.getElementById('copyJwtButton').addEventListener('click', function() {
+  const jwtTokenElement = document.getElementById('jwtToken');
+  jwtTokenElement.select();
+  document.execCommand('copy');
+  alert('JWT copiado para área de transferência');
+});
+</script>
+{% endblock %}

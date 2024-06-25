@@ -1,0 +1,7 @@
+flask
+flask_sqlalchemy
+psycopg2
+flask_migrate
+flask_wtf
+python-dotenv
+requests

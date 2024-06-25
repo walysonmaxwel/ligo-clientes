@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:13
+    container_name: postgres_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: clients_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - clientes_net
+
+
+  flask_crud_clientes:
+    build:
+      context: ./flask_crud_clientes
+    container_name: flask_crud_clientes
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    env_file:
+      - ./flask_crud_clientes/.env
+    volumes:
+      - ./flask_crud_clientes:/app
+    networks:
+      - clientes_net
+
+  fastapi_jwt:
+    build:
+      context: ./fastapi_jwt
+    container_name: fastapi_jwt
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - ./fastapi_jwt/.env
+    volumes:
+      - ./fastapi_jwt:/app
+    networks:
+      - clientes_net
+
+volumes:
+  postgres_data:
+
+networks:
+  clientes_net:
+    driver: bridge
