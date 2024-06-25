@@ -24,26 +24,13 @@ Este projeto é um aplicativo de gerenciamento de clientes desenvolvido como par
 1. **Clone o repositório:**
 
    ```sh
-   git clone <URL_DO_REPOSITORIO>
-   cd project
+   git clone https://github.com/walysonmaxwel/ligo-clientes
+   cd ligo-clientes
 
 2. **Configure os arquivos .env:**
 
-Crie os arquivos .env nas pastas flask_crud_clients e fastapi_jwt com o seguinte conteúdo:
+Crie os arquivos .env nas pastas flask_crud_clients e fastapi_jwt copiando o conteúdo do .env.example:
 
-flask_crud_clients/.env:
-```
-FLASK_APP=src
-FLASK_ENV=development
-SQLALCHEMY_DATABASE_URI=postgresql://user:password@postgres_db:5432/clients_db
-SECRET_KEY=your_secret_key
-```
-
-fastapi_jwt/.env:
-```
-DATABASE_URL=postgresql://user:password@postgres_db:5432/clients_db
-SECRET_KEY=your_secret_key
-```
 3. **Construa e inicie os containers:**
 ```
 docker-compose up --build
@@ -58,8 +45,9 @@ docker-compose up --build
 5. **Estrutura do Código:**
 
 Flask
-- __init__.py: Configura a aplicação Flask, inicializa extensões e define a criação do banco de dados.
-- routes.py: Define as rotas para cadastrar e recuperar clientes.
+- migrations: Lógica de migration da tabela do banco de dados pgsql
+- src/__init__.py: Configura a aplicação Flask, inicializa extensões e define a criação do banco de dados.
+- src/routes.py: Define as rotas para criação de usuário e jwt
 - models.py: Define o modelo de cliente para o banco de dados.
 
 FastAPI
@@ -73,7 +61,9 @@ Docker
 
 
 ### Observações
-- Para simplificar o projeto, o banco de dados não foi normalizado
-- Para evitar dificuldades de subida de ambiente, mantive o .env fora do .gitignore
+- HotReload implementado para ambas aplicações
 - Foi implementada proteção CSRF na aplicação flask
+- Ambiente está dentro de cointainer docker. Ps: o banco possui volume definido, caso queira wipar o banco: docker volume rm ligo-clientes_postgres_data 
+- Para simplificar o projeto, o banco de dados não foi normalizado
+- Para evitar dificuldades de subida de ambiente, mantive os .envs fora do .gitignore
 - Por segurança, mantive client_id e client_secret fora do jwt pois são dados sensíveis que não devem ser expostos

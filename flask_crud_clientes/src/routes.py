@@ -5,6 +5,7 @@ from .models import Client
 import uuid
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
+import os
 
 @app.route('/')
 def index():
@@ -40,7 +41,7 @@ def add_client():
         elif 'client_email_key' in str(e.orig):
             return jsonify({'error': 'Email já existe'}), 400
         else:
-            return jsonify({'error': 'Constraint violation'}), 400
+            return jsonify({'error': 'Erro de constraint'}), 400
     except Exception as e:
         db.session.rollback()
         logger.error(f"Exception: {e}")
@@ -66,6 +67,7 @@ def get_clients():
 
 @app.route('/generate_jwt/<int:client_id>', methods=['GET'])
 def generate_jwt(client_id):
+    FASTAPI_URL = os.getenv("FASTAPI_URL")
     client = Client.query.get(client_id)
     if not client:
         return jsonify({'error': 'Client not found'}), 404
@@ -78,8 +80,8 @@ def generate_jwt(client_id):
     }
 
     expiration_time = 1 
-    response = requests.post('http://fastapi_jwt:8000/generate_jwt', json=user_data, params={"expiration_time": expiration_time})
+    response = requests.post(f'{FASTAPI_URL}/generate_jwt', json=user_data, params={"expiration_time": expiration_time})
     if response.status_code == 200:
         return jsonify(response.json())
     else:
-        return jsonify({'error': 'Failed to generate JWT'}), response.status_code
+        return jsonify({'error': 'Falhar ao gerar JWT'}), response.status_code
